@@ -24,15 +24,15 @@ It turns out that it is easy for a human to recognize a diagram, a code block, o
 
 ## The next steps
 There are a number of places one could work next:
-* Improve the code-recognition algorithms
-* Improve the diagram-recognition algorithm
+* Improve the code-recognition algorithms.
+* Improve the diagram-recognition algorithm.
 * The code currently returns the table of contents data back to the main script.  A natural next step would be to generate a nice navigation for all of the note files which includes these subtopics.
 * Squash bugs and introduce more robust error-handling.
 
 ## Bugs
 This script was developed using _recursion.txt_, and it works pretty well with it!  However, it has mixed results with other text files.  In particular, when applying the script to other files the following things may happen:
 * Some diagrams are borked
-* This error was found in _decoratorspackages.txt_:
+* An example edge case (or bug) which is not yet handled was found in _decoratorspackages.txt_:
 
 > k = line_starts_with_enumeration(lines[j+1][1])
 > > ERROR: list index out of range
