@@ -22,13 +22,13 @@ To try it out, make sure you have the Python modules in _requirements.txt_ insta
 ## Challenges, and why this is interesting
 It turns out that it is easy for a human to recognize a diagram, a code block, or even inline code contained within a sentence, but programming this algorithmically can be quite a challenge!  Can you precisely state how you differentiate between code and natural language?  The solution here works often, but not always, and so there is always room for improvement.  
 
-## The next steps
+## Next steps
 There are a number of places one could work next:
 * Improve the code-recognition algorithms.
 * Improve the diagram-recognition algorithm.
 * The code currently returns the table of contents data back to the main script.  A natural next step would be to generate a nice navigation for all of the note files which includes these subtopics.
 * Squash bugs and introduce more robust error-handling.
-* Other details, such as detecting and adding hyperlinks
+* Other details, such as detecting and adding hyperlinks.
 
 ## Bugs
 This script was developed using _recursion.txt_, and it works pretty well with it!  However, it has mixed results with other text files.  In particular, when applying the script to other files the following things may happen:
