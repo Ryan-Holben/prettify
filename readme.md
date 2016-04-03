@@ -8,6 +8,7 @@ This code attempts to format the notes for Dr. Richard Pattis' ICS-33 class into
 
 ## How it works
 This project is coded in Python.  The script does the following:
+
 1. The text files are examined, and each line is labeled as code, diagram, list, etc.
 1. Depending on the line designations, Markdown formatting is applied.
 1. The Markdown is rendered to HTML, and some extra HTML bits are added so that we can use some nice CSS.
@@ -29,4 +30,4 @@ This script was developed using _recursion.txt_, and it works pretty well with i
 > k = line_starts_with_enumeration(lines[j+1][1])
 > > ERROR: list index out of range
 
-In short, the original notes are not completely consistent, so we must check against the files for some edge cases.  Overall it works well, however.
+In short, the original notes are not completely consistent, so we still must check against the files for some edge cases.
