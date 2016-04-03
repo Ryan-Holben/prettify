@@ -1,5 +1,5 @@
 # Prettify
-[<img src="recursion.png" align=right border=1>](http://ryan-holben.github.io/output1.html)
+[<img src="recursion.png" align=right border="1">](http://ryan-holben.github.io/output1.html)
 This code attempts to format the notes for Dr. Richard Pattis' ICS-33 class at UC Irvine into something colorful and more easily navigated.  Some links:
 
 * [Course website](https://www.ics.uci.edu/~pattis/ICS-33/)
