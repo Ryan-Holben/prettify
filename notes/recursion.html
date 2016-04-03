@@ -1,0 +1,972 @@
+<head>
+<link rel="stylesheet" href="css/rpoole.css">
+<link rel="stylesheet" href="css/rhyde.css">
+<link id="syntaxhighlightingCSS" rel="stylesheet" href="css/codehilitepastie.css">
+
+<script>
+function swapCSS(sheet){
+	document.getElementById('syntaxhighlightingCSS').setAttribute('href', sheet);
+}
+</script>
+</head>
+
+<body>
+<div id="syntaxbuttons" align=center style="position:fixed; bottom:10; right:10;">
+Syntax<br>
+<button onclick="swapCSS('css/codehilitepastie.css')">Light</button>
+<button onclick="swapCSS('css/codehilitezenburn.css')">Dark</button>
+</div>
+
+    <h1><div align=center>                Recursion</div></h1>
+<hr />
+<h2><a name="top"></a> Table of Contents</h2>
+<ol>
+<li><a href="#anchor-1">Recursion vs Iteration</a></li>
+<li><a href="#anchor-2">Simple Recursion in Python</a></li>
+<li><a href="#anchor-3">Hand Simulation</a></li>
+<li><a href="#anchor-4">Proof Rules for Recursive Functions</a></li>
+<li><a href="#anchor-5">Mathematics Recursively</a></li>
+<li><a href="#anchor-6">Synthesizing recursive string methods</a></li>
+<li><a href="#anchor-7">Recursive list processing</a></li>
+<li><a href="#anchor-8">Problems</a></li>
+</ol>
+<hr />
+<p>In this lecture we will discuss the concept of recursion and examine recursive
+functions that operate on integers, strings, and lists, learning common idioms
+for each. As with other topics discussed this quarter, I want to ensure that you
+have a deliberate and deep understanding of recursion.</p>
+<p>The concept of recursively defined (sometimes called inductively defined) data
+types and recursion is fundamental in many areas of computer science, and this
+concept should be discussed from many angles in many of your ICS classes; you
+should become comfortable with seeing and applying recursion. In addition, some
+programming languages (Lisp is the foremost example) use recursion (and also 
+decision: if) as their primary control structures: any iterative code can be
+written recursively (and recursion is even more powerful than iteration, as we
+glimpsed in the EBNF lecture). Even languages that are not primarily recursive
+all support recursion (and have since the late 1950s), because sometimes using 
+recursion is the best way to write code to solve a problem: best often means
+simplest, but sometimes it can mean most efficient too.</p>
+<p>Python (and C/C++/Java) are not primarily recursive languages. Each has strong
+features for iterating through data (Python has the most powerful tools for such
+iteration, including generators). But, it is important that we learn how to
+write recursive code in Python too. Later in the quarter (next week) we will
+recursively define the linked list and binary tree data structures and see how
+to manipulate them, both iteratively (for some functions) and recursively (for
+all functions). In ICS-46 we will revisit these data structures (and more) many
+times using C++, and again see how we can manipulate them both iteratively and
+recursively.</p>
+<p>Douglas Hofstadter's Pulitzer-prize winning book, "Godel, Escher, Bach" is an
+investigation of cognition, and commonly uses recursion and self-reference to
+illustrate the concepts it is discussing. It is a fascinating book and because
+it is old, can be purchased quite cheaply as a used book.
+http://www.amazon.com/G%C3%B6del-Escher-Bach-Eternal-Golden/dp/0465026567</p>
+<hr />
+<h2><a name="anchor-1"></a>Recursion vs Iteration</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>Recursion is a programming technique in which a call to a function results in
+another call to that same function. In direct recursion, a call to a function
+appears in the function's body; in indirect/mutual recursion, the pattern is
+some function calls some other function ... which ultimately calls the first
+function. Think of f calling g and g calling f: f and g are mutually recursive
+with f calling f indirectly via g, and g calling g indirectly via f.</p>
+<p>For some data structures (not many built-into Python) and problems, it is
+simpler to write recursive code than its iterative equivalent. In modern
+programming languages, recursive functions may run a bit slower (maybe 5%) than
+equivalent iterative functions, but this is not always the case (and sometimes
+there is no natural/simple iterative solution to a problem); in a typical
+application, this  time is insignificant (most of the time will be taken up
+elsewhere anyway).</p>
+<p>We will begin by studying the form of general recursive functions; then apply
+this form to functions operating on int values, and then apply this form to
+functions operating on strings and lists. In all these cases, we will discuss
+how values of these types are recursively defined and discuss the "sizes" of
+the problem solved.</p>
+<p>Suppose that we have the problem of collecting $1,000.00 for charity, with the
+assumption that when asked, everyone is willing to chip in the smallest amount
+of money: a penny.</p>
+<p>Iterative solution : visit 100,000 people, and ask each for a penny</p>
+<p>Recursive solution:  if you are asked for a penny, give a penny to this person
+                         otherwise
+                            visit 10 people and ask them each to collect 1/10 the
+                              amount that you are asked to raise;
+                            collect the money they give you into one bag;
+                            give this bag to the person who asked you</p>
+<p>In the iterative version each subproblem is the same; raising a penny. In the
+recursive solution, subproblems get smaller and smaller until they reach the
+problem of collecting a penny (they cannot get any smaller: this problem has the
+smalles size).</p>
+<p>The general form of a directly recursive function is</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">Solve</span><span class="p">(</span><span class="n">Problem</span><span class="p">):</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Problem</span> <span class="ow">is</span> <span class="n">minimal</span><span class="o">/</span><span class="ow">not</span> <span class="n">decomposable</span> <span class="n">into</span> <span class="n">a</span> <span class="n">smaller</span> <span class="n">problem</span><span class="p">:</span> <span class="n">a</span> <span class="n">base</span> <span class="n">case</span><span class="p">)</span>
+    <span class="n">Solve</span> <span class="n">Problem</span> <span class="n">directly</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">solution</span><span class="p">;</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span><span class="p">,</span> <span class="n">without</span> <span class="n">recursion</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="n">Decompose</span> <span class="n">Problem</span> <span class="n">into</span> <span class="n">one</span> <span class="ow">or</span> <span class="n">more</span> <span class="n">SIMILAR</span><span class="p">,</span>
+        <span class="n">STRICTLY</span> <span class="n">SMALLER</span> <span class="n">subproblems</span><span class="p">:</span> <span class="n">SP1</span><span class="p">,</span> <span class="n">SP2</span><span class="p">,</span> <span class="o">...</span> <span class="p">,</span> <span class="n">SPn</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span>    (2) Recursively call Solve (this function) on each smaller subproblem
+        (since they are similar): Solve(SP1), Solve(SP2),..., Solve(SPN)
+
+    (3) Combine the returned solutions to these smaller subproblems into a
+        solution that solves the original, larger Problem (the one this
+        function call must solve)
+
+    (4) Return the solution to the original Problem
+</pre></div>
+
+
+<hr />
+<h2><a name="anchor-2"></a>Simple Recursion in Python</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>We will start by examining a recursive definition for the factorial function
+(e.g., 5! reads as "five factorial") and then a recursive function that
+implements it. The definition is recursive because we define how to compute a
+big factorial in terms of computing a smaller factorial. Note that the domain
+of the factorial function is the non-negative integers (also called the natural
+numbers).</p>
+<div class="codehilite"><pre><span></span>   <span class="mi">0</span><span class="err">!</span> <span class="o">=</span> <span class="mi">1</span>
+   <span class="n">N</span><span class="err">!</span> <span class="o">=</span> <span class="n">N</span>\<span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="err">!</span>  <span class="k">for</span> <span class="nb">all</span> <span class="n">N</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span> 
+</pre></div>
+
+
+<p>By this definition (and just substitution of equals for equals) we see that</p>
+<p>5! = 5*4! = 5*4*3! = 5*4*3*2! = 5*4*3*2*1! = 5*4*3*2*1*0! = 5*4*3*2*1*1</p>
+<p>The first definition below is a transliteration of the general code above,
+decomposing it into just one similar (factorial) but simpler (n-1) subproblem.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">factorial</span> <span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sub_problem</span>        <span class="o">=</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span> 
+        <span class="n">solved_sub_problem</span> <span class="o">=</span> <span class="n">factorial</span><span class="p">(</span><span class="n">sub_problem</span><span class="p">)</span>
+        <span class="n">solved_n</span>           <span class="o">=</span> <span class="n">n</span><span class="o">*</span><span class="n">solved_sub_problem</span>
+        <span class="k">return</span> <span class="n">solved_n</span>
+</pre></div>
+
+
+<p>The next definition is a simplification of how this function should really be
+written in Python, without all the intermediate names, which are not needed and
+don't really add clarity.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">factorial</span> <span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span><span class="o">*</span><span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This looks clean and closely mirrors the recursive mathematical description of 
+factorial. In fact, because of the simplicity of this particular recursive
+function, we can write an even simpler solution using a conditional expression;
+but I prefer the solution above, because it is more representative of other
+recursive solutions (to more complicated problems).</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">factorial</span> <span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">n</span><span class="o">*</span><span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>we can contrast the recursive code with the iterative code that implements the
+factorial function</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">goody</span> <span class="kn">import</span> <span class="n">irange</span>
+<span class="k">def</span> <span class="nf">factorial</span> <span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">answer</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">irange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">answer</span> <span class="o">*=</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="n">answer</span>
+</pre></div>
+
+
+<p>Note that this function defines two local names (answer and i) and binds 1 to
+answer and rebinds it to a new value during each execution of the for loop's
+body. Likewise, i is rebound to a sequence of values produced when the function
+iterates over the irange(2,n). The recursive function defines no local names and
+doesn't rebind any names (although each recursive call binds the parameter in
+the new recursive function call).</p>
+<p>Rebinding the values of names make it hard for us to think about the meaning of
+code (they make it tougher to prove that the code is correct too), and makes it
+hard for multi-core processors to coordinate in solving a problem. "Functional
+programming languages" (those that allow binding of a name to computed value,
+but no rebinding to that names) are more amenable to be automatically
+parallelizable (can run more quickly on multi-core computers). You'll see more
+about this in later classes at UCI (e.g., Concepts of Programming Languages).</p>
+<p>We can mimic factorial's recursive definition for a function that raises a
+number to an integer power. Note that the domain of n for this power function
+requires n to be a natural number (a non-negative integer).</p>
+<div class="codehilite"><pre><span></span>  A**0 = 1         (yes, this is even true when A=0)
+  A**N = A*A**N-1  for all N&gt;0
+</pre></div>
+
+
+<p>We can likewise translate this definition into a simple recursive Python
+function</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>By this definition (and just substitution of equals for equals) we see that
+calling power(a,n) requires n multiplications.</p>
+<p>power(a,3) = a*power(a,2) = a*a*power(a,1) = a*a*a*power(a,0) = a*a*a*1</p>
+<p>Of course we could write this code iteratively as follows, which also requires
+n multiplications</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">answer</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">irange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">answer</span> <span class="o">*=</span> <span class="n">a</span>
+    <span class="k">return</span> <span class="n">answer</span>
+</pre></div>
+
+
+<p>But there is a another way to compute power(a,n) recursively, shown below. This
+longer function requires between Log2 n and 2*Log2 n multiplications. Here Log2
+means the log function using a base of 2. Note Log2 1000 is about 10 (2**10 =
+1,024), so Log2 1,000,000 is about 20, Log2 1,000,000,000 is about 30): so, to
+compute power(a,1000) requires between 10 and 20 multiplications (not the 1,000
+multiplcations required by the earlier definitions of power).</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="k">if</span> <span class="n">n</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+       <span class="k">else</span><span class="p">:</span>
+           <span class="n">temp</span> <span class="o">=</span> <span class="n">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+           <span class="k">return</span> <span class="n">temp</span><span class="o">*</span><span class="n">temp</span>
+</pre></div>
+
+
+<p>Here we bind temp once and then use its value, which is fine for functional
+programming. We could get rid of the local name temp by defining the local
+function def square(n): n*n inside power and and calling it in the else clause:
+return square( power(a,n//2) )</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">square</span><span class="p">(</span><span class="n">n</span><span class="p">):</span> <span class="k">return</span> <span class="n">n</span><span class="o">*</span><span class="n">n</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="k">if</span> <span class="n">n</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+       <span class="k">else</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">square</span><span class="p">(</span> <span class="n">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+
+
+<p>For one example
+        power(a,16) computes power(a,8) and returns its result with 1 more
+        multiplication; power(a,8) computes power(a,4) and returns its result with
+        1 more multiplication; power(a,4) computes power(a,2) and returns its
+        result with 1 more multiplication; power(a,2) computes power(a,1) and
+        returns its result with 1 more multiplication; power(a,1) computes
+        a*power(a,0), which requires 1 multiplication: computing power(a,0)
+        requires 0 multiplications (it just retuns a value).</p>
+<div class="codehilite"><pre><span></span>    In all, power(a,16) requires just 5 multiplications, not 16. Note that this
+    function is NOT guaranteed to always use the minimum number of
+    multiplications. Power(a,15) uses 6  multiplication, but computing
+    x3 = x*x*x then x3*(square(square(x3))) requires only 5: see the topic
+    named &quot;addition-chain exponentiation&quot; if you are interested in what is
+    known about the minimimal number of multiplications required for
+    exponentiation.
+</pre></div>
+
+
+<p>We will prove that this function computes the correct answer later in this
+lecture. Truth be told, we can write a fast power function like this
+iteratively too, but it looks much more complicated and is much more
+complicated to analyze its behavior and prove it correct.</p>
+<hr />
+<h2><a name="anchor-3"></a>Hand Simulation</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>Next, we will learn how to hand-simulate a recursive functions using a "tower of
+call frames" in which each resident in an apartment executes the same code
+(acting as the function) to compute a factorial: he/she is called by the
+resident above and calls the resident underneath, when a recursive call is
+needed (calling back the resident above when their answer is computed). While
+it is useful to be able to hand-simulate a recursive call, to better understand
+recursion, hand-smulation is not a good way to understand or debug recursive
+functions (the 3 proof rules discussed below are a better way). I will do this
+hand simulation on the document camera, using the following form for computing
+factorial(5).</p>
+<div class="codehilite"><pre><span></span>      Factorial Towers
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+     ...
+    +-----------------+
+    | n =             |
+    | return ...      |
+    +-----------------+
+</pre></div>
+
+
+<hr />
+<h2><a name="anchor-4"></a>Proof Rules for Recursive Functions</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>Now, we will learn how to verify that recursive functions are correct by three
+proof rules. Even more important than proving that existing functions are
+correct (to better understand them), we will use these same three proof rules
+to guide us when we synthesize new recursive functions.</p>
+<p>Note that in direct recursion, we say that the function "recurs", not that it
+"recurses". Recurses describes what happens when you bang your toe into a door
+the second time. Programmers who use the word recurse are not well educated.</p>
+<p>The three proof rules should be simple to apply in most cases. These rules
+mirror rules for proofs by induction in mathematics.</p>
+<ol>
+<li>
+<p>Prove that the base case problem is processed correctly.
+   Should be easy, because base cases are small and simple.</p>
+</li>
+<li>
+<p>Prove that each recursive call gets closer to the base case.
+   Should be easy because there are "standard" ways to recur: ints go down
+   by 1 or a factor of 10 (i.e., x//10 has one fewer digit; x%10 has one digit);
+   Strings, tuples, and lists recur on a slices (fewer characters, fewer
+   values).</p>
+</li>
+<li>
+<p>ASSUMING ALL RECURSIVE CALLS SOLVE THEIR SMALLER SUBPROBLEMS CORRECTLY,
+     prove that the code combines these solved subproblems to solve Problem
+    (the parameter of the function).
+   Should be easy, because we get to assume something very important and
+   powerful: all subproblems are correctly solved.</p>
+</li>
+</ol>
+<p>Here is a proof, using these 3 rules, that the factorial function is correct:</p>
+<ol>
+<li>
+<p>The base case is 0; and according to the recursive mathematical definition,
+0! = 1. This function recognizes an argument of 0 and returns 1 for it.</p>
+</li>
+<li>
+<p>If n is a non-negative number that is not 0 (not the base case), then this
+function makes one recursive call: n-1 is closer to 0 (the base case) than n is.
+It is closer by 1: the distance between n-1 and 0 is 1 less than the distance
+between n and 0.</p>
+</li>
+<li>
+<p>ASSUMING factorial(n-1) COMPUTES (n-1)! CORRECTLY, this function returns
+n*factorial(n-1), which is n*(n-1)! which according to the mathematical
+definition is the correct answer for n!, the parameter to this function.</p>
+</li>
+</ol>
+<p>Notice that the focus of the proof is on ONE call of the function (not like the
+hand simulation method above). We look at what happens if it is a base case (1)
+or if it actually recurs (2-3). For the recursive case, we don't worry about
+more recursive calls, because we get to assume that any recursive calls (on
+smaller problems, which might be the base case or at least closer to the base
+cases) compute the correct answer without having to think about what happens
+during any recursive calls.</p>
+<p>Proof that fast-power function is correct (the code is duplicated from above):</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">square</span><span class="p">(</span><span class="n">n</span><span class="p">):</span> <span class="n">n</span><span class="o">*</span><span class="n">n</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="k">if</span> <span class="n">n</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+       <span class="k">else</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">square</span><span class="p">(</span> <span class="n">power</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">n</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+
+
+<ol>
+<li>
+<p>The base case is 0; and according to the recursive mathematical definition,
+a**0 = 1. This function recognizes an argument of 0 and returns 1 for it.</p>
+</li>
+<li>
+<p>If n is a non-negative number that is not 0 (not the base case), then if
+n is odd, n-1 is closer to 0 (the base case) than n is; if n is even (it must
+be &gt;= 2), n//2 is also closer to 0 (the base case) than n is.</p>
+</li>
+<li>
+<p>ASSUMING power(a,n-1) COMPUTES a**(n-1) CORRECTLY AND power(a,n//2) COMPUTES
+a**(n//2) CORRECTLY. n must be odd or even: if n is odd, this function returns
+a*a**(n-1), so it returns (by simplifying) a**n, which is the correct answer
+for the parameters to this function; likewise, if n is even, this function
+returns the value square(a**(n//2)), which returns (by simplifying) a**n, which
+is the correct answer for the parameters to this function. For example, for n
+the even number, 10, square (a**(10//2)) = square (a**5) = (a**5)**2 = a**10.</p>
+</li>
+</ol>
+<p>Again, the focus of the proof is on one call of the function: the parts concern
+only the base case and the recursive case (now two cases, depending on whether
+n is odd or even): and for the recursive cases, we don't worry about more
+recursive calls, because we get to assume that any recursive calls (on smaller
+problems, closer to the base cases) compute the correct answer  without having
+to think about what happens during the recursion.</p>
+<p>What happens if we write factorial incorrectly? Will the proof rules fail. Yes,
+for any flawed definitions one will fail. Here are three examples (one failure
+for each proof rule).</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">factorial</span> <span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>            <span class="c1"># 0! is not 1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span><span class="o">*</span><span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This factorial function violates the first proof rule. It returns 0 for the
+base case; since everything is multiplied by the base case, ultimately this
+function always returns 0. Bar bet: you name the year and the baseball team,
+and I will tell you the product of all the final scores (last inning) for all
+the games they played that year. How do I do it and why don't I make this kind
+of bet on basketball teams?</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">factorial</span> <span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># n+1 not closer to base case: 0</span>
+</pre></div>
+
+
+<p>This factorial function violates the second proof rule. It recurs on n+1, which
+is farther away from -not closer to- the base case. Although mathematically
+(n+1)!/(n+1) = (n+1)*n!//(n+1) = n! this function will continue calling
+factorial with ever-larger arguments: a runaway (or infinite) recursion.
+Actually, each recursive call can take up some space (to store its argument, see
+the hand simulation, which requires binding an argument for each recursive
+call), so eventually memory will be exhausted and Python will raise an 
+exception.</p>
+<p>Actually, Python limits the the number of times any recursive function can
+call itself. We can examine/set the recursion limit by importing the sys module
+and the calling sys.getrecursionlimit()/sys.setrecursionlimit(some number)
+functions.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">factorial</span> <span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span><span class="o">+</span><span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>         <span class="c1"># n+(n-1)! is not n!</span>
+</pre></div>
+
+
+<p>This factorial function violates the third proof rule. Even if we assume that
+factorial(n-1) computes the correct answer, this function returns n added (not
+multiplied) by that value, so it does not return the correct answer. In fact,
+it returns one more than the sum of all the integer from 1 to n (because for 0
+it returns 1) not the product of these numbers.</p>
+<p>In summary, each of these functions violates a proof rule and therefore doesn't
+always return the correct value. The first function always returns the wrong
+value; the second function returns the correct value, but only for the the base
+case; it never returns a value for any other argument; the third function
+returns the correct value, but only for the the base case.</p>
+<p>We can actually prove that these proof rules are correct! Here is the proof.
+This is not simple, but it is short so I will write the proof here and let you
+think about it (and reread it a dozen times if you need to).</p>
+<p>Assume that we have correctly proven that these three proof rules are correct
+for some recursive funtion f. And assume that we assert that the function is
+not correct. We will show that these two assertions lead to a contradiction: if
+f is not correct, then there must be some problems that it does not correctly
+solve. And, if there is a problem that f does not correctly solve, there must
+be a SMALLEST problem that it does not correctly solve: call this problem p.</p>
+<p>Because of proof rule (1) we know that p cannot be the base case, because we
+have proven f recognizes and solves base cases correctly. Since f solves p by
+recursion, it first recursively solves a problem smaller than p: we know by
+proof rule (2) that it always recurs on a smaller problem; and we know that f
+correctly solves this smaller problem, because p, by definition, is the smallest
+problem that f solves incorrectly. But we also know by proof (3) that if f
+recurs and correctly solves a smaller problem (as it does for p), it will
+correctly solve the original problem, p. Therefore, it is impossible to find a
+smallest problem that f incorrectly solves; so, f must solve all problems
+correctly.</p>
+<p>Well, that is how the proof goes.</p>
+<hr />
+<h2><a name="anchor-5"></a>Mathematics Recursively</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>We can construct all the mathematical and relational operators on natural
+numbers (integers &gt;= 0) given just three functions and if/recursion. We can
+recursively define the natural numbers as:</p>
+<div class="codehilite"><pre><span></span>   0 is the smallest natural number
+   for any natural number n, s(n) (the successor of n: n+1) is a natural number
+</pre></div>
+
+
+<p>Now we define three simple functions z(ero), p(redecessor), and s(uccessor).</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">z</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>       <span class="c1"># z(n) returns whether or not n is 0</span>
+    <span class="k">return</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">s</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>       <span class="c1"># s(n) returns the successor to n (n+1)</span>
+    <span class="k">return</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>       <span class="c1"># p(n) returns the predecessor of n, if one exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">z</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>    <span class="c1"># 0 has no predecessor</span>
+        <span class="k">return</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;z: cannot compute predecessor of 0&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Note we should be able to prove/argue/understand the following:</p>
+<p>z(s(n)) is always False
+p(s(n)) is always n
+s(p(n)) is n if n != 0 (otherwise p(n) raises an exception)</p>
+<p>Given these functions, we can define functions for all arithmetic (+ - * // **)
+and relational ( == &lt;... and all the other relational) operators. For example</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">z</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>                <span class="c1"># a == 0</span>
+        <span class="k">return</span> <span class="n">b</span>            <span class="c1"># return b: 0 + b = b</span>
+    <span class="k">else</span><span class="p">:</span>                   <span class="c1"># a != 0</span>
+        <span class="n">returns</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">p</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">s</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="p">)</span>   <span class="c1"># return (a-1)+(b+1) = a+b</span>
+</pre></div>
+
+
+<p>Proof of correctness</p>
+<ol>
+<li>
+<p>The base case is a==0; and according to our knowledge of of mathematics,
+sum(0,b) is 0+b which is b. This function returns b when the argument a == 0.</p>
+</li>
+<li>
+<p>If z(a) is not True (a is not 0), then p(a) as the first agument in the
+recursive call to sum is closer to the base case of 0. Becaue a is not 0, there
+is a predecessor of (a number one smaller than) a.</p>
+</li>
+<li>
+<p>Assuming that sum(p(a),s(b)) computes its sum correctly, we have
+sum(p(a),s(b)) = (a-1)+(b+1) = a + b = sum(a,b), so returning this result
+correctly returns the sum of a and b.</p>
+</li>
+</ol>
+<p>Another way to define this function is</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">z</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>                <span class="c1"># a == 0</span>
+        <span class="k">return</span> <span class="n">b</span>            <span class="c1"># return b: 0 + b = b</span>
+    <span class="k">else</span><span class="p">:</span>                   <span class="c1"># a != 0</span>
+        <span class="n">returns</span> <span class="n">s</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span> <span class="n">p</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">b</span> <span class="p">)</span>    <span class="c1"># return (a-1)+(b) + 1 = a+b</span>
+</pre></div>
+
+
+<p>We can als use the3 proof rule to prove this function correctly computes the
+sum of any two non-negative integers.</p>
+<p>We can similarly define the mult function, multiplying by repeated addition.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">mult</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">z</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>                <span class="c1"># a = 0</span>
+        <span class="k">return</span> <span class="mi">0</span>            <span class="c1"># return 0: 0*b = 0</span>
+    <span class="k">else</span><span class="p">:</span>                   <span class="c1"># a != 0</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">mult</span><span class="p">(</span><span class="n">p</span><span class="p">(</span><span class="n">a</span><span class="p">),</span><span class="n">b</span><span class="p">))</span>     <span class="c1"># return b+((a-1)*b) = b+a*b-b = a*b</span>
+</pre></div>
+
+
+<p>Switching from arithmetic to relational operators....</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">equal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">z</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="ow">or</span> <span class="n">z</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>        <span class="c1"># a = 0 or b = 0 (either == 0)</span>
+        <span class="k">return</span> <span class="n">z</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="ow">and</span> <span class="n">z</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>    <span class="c1"># return True (if both == 0) False (if one != 0)</span>
+    <span class="k">else</span><span class="p">:</span>               <span class="c1"># a != 0 and b != 0</span>
+        <span class="k">return</span> <span class="n">equal</span><span class="p">(</span><span class="n">p</span><span class="p">(</span><span class="n">a</span><span class="p">),</span><span class="n">p</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="c1"># return a-1==b-1 which is the same as a==b</span>
+</pre></div>
+
+
+<p>We also might find it useful to do a hand simulation of these functions, with
+the two parameters a and b stored in each "apartment" and passed as arguments.</p>
+<p>The right way to illustrate all this mathematics is to write a class Natural,
+with these methods, and then overload/define __add__ etc. for all the operators.
+I just didn't have the time to do that now.</p>
+<hr />
+<h2><a name="anchor-6"></a>Synthesizing recursive string methods</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>We can define strings recursively:
+      '' is the smallest string
+      a character catenated to the front of a string is a string</p>
+<p>Let's use these proof rules to write a reciple for synthesizing (and therefore
+proving correct as we are writing them) a few recursive functions that process
+strings. Here is our approach:</p>
+<ol>
+<li>
+<p>Find the base (non-decomposable) case(s)
+    Write the code that detects the base case and returns the correct answer
+      for it, without using recursion</p>
+</li>
+<li>
+<p>Assume that we can decompose all non base-case problems and then solve
+      these smaller subproblems via recursion
+    Choose (requires some ingenuity) the decomposition; it should be "natural"</p>
+</li>
+<li>
+<p>Write code that combines these solved subproblems (often there is just one)
+       to solve the problem specified by the parameter</p>
+</li>
+</ol>
+<p>We can use these rules to synthesize a method that reverses a string. We start
+with</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+</pre></div>
+
+
+<ol>
+<li>Please take time to think about the base case: the smallest string. Most
+students will think that a single-character string is the smallest, when in
+fact a zero-character string (the empty string) is smallest. It has been my
+experience that more students screw-up on the base case than the recursive case.
+Once we know the smallest string is the empty string, we need to detect it and
+return the correct result without recursion: the reverse of an empty string is
+an empty string.</li>
+</ol>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>     <span class="c1"># or len(s) == 0</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Recur</span> <span class="n">to</span> <span class="n">solve</span> <span class="n">a</span> <span class="n">smaller</span> <span class="n">problem</span>
+        <span class="n">Use</span> <span class="n">the</span> <span class="n">solution</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smaller</span> <span class="n">problem</span> <span class="n">to</span> <span class="n">solve</span> <span class="n">the</span> <span class="n">original</span> <span class="n">problem</span>
+</pre></div>
+
+
+<p>We can guess the form of the recursion as reverse(s[1:]) note that the slice
+s[1:] computes a string with all characters but the one at index 0: all the
+characters after the first. We are guaranteed to be slicing only on non-empty
+strings (those whose answer is not computed by the base case), so slicing will
+always be a smaller string. We get to assume that the recursive call correctly
+returns the reverse of the string that contains all characters but the first.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>     <span class="c1"># or len(s) == 0</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Use</span> <span class="n">the</span> <span class="n">solution</span> <span class="n">of</span> <span class="n">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="n">to</span> <span class="n">solve</span> <span class="n">the</span> <span class="n">original</span> <span class="n">problem</span>
+</pre></div>
+
+
+<p>Now, think about an example. if we called reverse('abcd') we get to assume that
+the recursive call works: so reverse(s[1:]) is reverse('bcd') which we get to
+assume returns 'dcb'). How do we use the solution of this subproblem to solve
+the original problem, which must return 'dcba'? We need to catenate 'a' (the
+first character, at s[0]) to the end of the reverse of all the other characters:
+'dcb' + 'a', which evaluates to 'dbca', the reverse of all the characters in
+the parameter string. Generally we write this function as</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>     <span class="c1"># or len(s) == 0</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span>
+        <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+
+
+<p>We have now written this method by ensuring the three proof rules are satisfied
+so we dont' have to prove them, but note that </p>
+<ol>
+<li>
+<p>the reverse of the smallest string (empty) is computed/returned correctly</p>
+</li>
+<li>
+<p>the recursive call is on a string argument smaller than s
+    (all the characters from index 1 to the end, skipping the character at
+     index 0, and therefore a string with one fewer characters)</p>
+</li>
+<li>
+<p>ASSUMING THE RECURSIVE CALL WORKS CORRECTLY FOR THE SMALLER STRING, then
+    by catenating the first character on the end of it, we have correctly
+    reversed the entire string (solving the problem for the parameter)</p>
+</li>
+</ol>
+<p>In fact, we can use a conditional expression to rewrite this code as a single
+line as well.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="n">reverse</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+
+
+<p>Here is a similar recursive function for reversing the values in a list.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">==</span> <span class="p">[]:</span>              <span class="c1"># or len(l) == 0</span>
+        <span class="k">return</span> <span class="p">[];</span>
+    <span class="k">else</span>
+        <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="p">[</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>  <span class="c1"># [l[0]] for right operand of +</span>
+</pre></div>
+
+
+<p>Now we will write a recursive function that returns the string equivalent of an
+int using the same approach: satisfying the three proof rules. We know that
+Python's str function, automatically imported from the builtins module) will
+return the string representation of an int. We can actually now write this
+function recursively and at the same time prove it is correct. </p>
+<p>To start, we assume that the integer is non-negative (and fix this assumption
+later). Unlike the factorial and power functions, here the size of the integer
+will be the number of digits it contains: the smallest non-negative integer (0)
+contains 1 digit, so that is the smallest size problem. So, we start with the
+header and base case.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">to_str</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;0123456789&#39;</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>          <span class="c1"># 0&lt;=n&lt;=9, so no index error</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Recur</span> <span class="n">to</span> <span class="n">solve</span> <span class="n">a</span> <span class="n">smaller</span> <span class="n">problem</span>        <span class="c1"># n has at least two digits</span>
+        <span class="n">Use</span> <span class="n">the</span> <span class="n">solution</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smaller</span> <span class="n">problem</span> <span class="n">to</span> <span class="n">solve</span> <span class="n">the</span> <span class="n">original</span> <span class="n">problem</span>
+</pre></div>
+
+
+<p>We can guess the form of the recursion as to_str(n//10) and to_str(n%10)
+because n//10 is all but the last digits in n and n%10 is the last digit. If
+N has at least d digits (where d&gt;=2), then both n//10 and n%10 will have fewer
+digits: n//10 has d-1 digits and n%10 has 1 digit. </p>
+<p>We get to assume that the recursive call correctly returns the string
+representation of these numbers.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">to_str</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="mi">0</span><span class="o">&lt;=</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;0123456789&#39;</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>          <span class="c1"># 0&lt;=n&lt;=9, so no index error</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Use</span> <span class="n">the</span> <span class="n">solution</span> <span class="n">of</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">//</span><span class="mi">10</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">%</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Now, think about an example. if we called to_str(135) we get to assume that
+the recursive calls work: so to_str(n//10) is to_str(13) which we get to assume
+is '13' and to_str(n%10) is to_str(5) which we get to assume is '5'. How do we
+use the solution of these subproblems to solve the original problem? We need to
+catenate them togther. Generally we write this function as</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">to_str</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="mi">0</span><span class="o">&lt;=</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;0123456789&#39;</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>          <span class="c1"># 0&lt;=n&lt;=9, so no index error</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">//</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">%</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+
+<p>We have now written this method by ensuring the three proof rules are
+satisfied. Note that </p>
+<ol>
+<li>
+<p>the to_str of the smallest ints (1 digit) are computed/returned correctly</p>
+</li>
+<li>
+<p>the two recursive calls are on int arguments that are smaller than n by at
+    least one digit (in fact the second call is always 1 digit).</p>
+</li>
+<li>
+<p>ASSUMING THE RECURSIVE CALLS WORK CORRECTLY FOR THE SMALLER int , then
+    by catenating the two numbers together, we have correctly found the string
+    representation of the n (solving the original problem)</p>
+</li>
+</ol>
+<p>We make this function work for negative numbers by redefining to_str with
+its original code in a locally defined function, changing the body of this
+function by either appending nothing or a '-' in front of the answer, depending
+on n.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">to_str</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">to_str1</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="mi">0</span><span class="o">&lt;=</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;0123456789&#39;</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>      <span class="c1"># 0&lt;=n&lt;=9, so no index error</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">//</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">%</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">+</span><span class="n">to_str1</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="c1"># or</span>
+    <span class="c1">#return (to\_str1(n) if n &gt;= 0 else &#39;-&#39;+to\_str1(-n))</span>
+</pre></div>
+
+
+<p>In fact, the following function uses the same technique (but generalizes it by
+converting to an arbitrary base) to compute the string representation of a
+number in any base from binary up to hexadecimal: to_str(11,2) returns '1011'</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">to_str</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">if</span> <span class="mi">0</span><span class="o">&lt;=</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">base</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;0123456789ABCDEF&#39;</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>            <span class="c1"># 0&lt;=n&lt;=9, so no index error</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">//</span><span class="n">base</span><span class="p">,</span><span class="n">base</span><span class="p">)</span> <span class="o">+</span> <span class="n">to_str</span><span class="p">(</span><span class="n">n</span><span class="o">%</span><span class="n">base</span><span class="p">,</span><span class="n">base</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Now let's write a method that has two recursive parameters. Suppose we want to
+write a same_length function that tests whether the length of its two string
+parameters are equal, without ever explicitly computing the length of each.
+With two recursive parameters we have possible 4 base conditions</p>
+<div class="codehilite"><pre><span></span>                               Parameter 2
+                          Empty      Not empty
+                        +----------+----------+
+            Empty       | Equal    | Not equal|
+Parameter 1             +----------+----------+
+            Not Empty   | Not Equal|   recur  |
+                        +----------+----------+
+</pre></div>
+
+
+<p>In three of the four, we immediately know the answer. If both parameters are
+empty then the strings have the same length; if one parameter is empty and one
+isn't, then the strings have different lengths. Only if both are not empty do
+we need to recur to compute the correct answer.</p>
+<p>Here are three ways to write the base cases.</p>
+<div class="codehilite"><pre><span></span>    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">s2</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">False</span>                  <span class="c1"># if got here, s1 != &#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>                  <span class="c1"># if either is empty, will return</span>
+        <span class="k">return</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>          <span class="c1"># return True if both empty</span>
+
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>                  <span class="c1"># if either is empty, will return</span>
+        <span class="k">return</span> <span class="n">s1</span> <span class="o">==</span> <span class="n">s2</span>                       <span class="c1"># return True if the same (empty)</span>
+</pre></div>
+
+
+<p>So we can start this function as</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">same_length</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span><span class="n">s2</span><span class="p">)</span>    
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Recur</span> <span class="n">to</span> <span class="n">solve</span> <span class="n">a</span> <span class="n">smaller</span> <span class="n">problem</span>        <span class="c1"># s1/s2 each are not empty</span>
+        <span class="n">Use</span> <span class="n">the</span> <span class="n">solution</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smaller</span> <span class="n">problem</span> <span class="n">to</span> <span class="n">solve</span> <span class="n">the</span> <span class="n">original</span> <span class="n">problem</span>
+</pre></div>
+
+
+<p>Now, if Python executes the else: clause then it has two non-empty strings, for
+each of which we can compute a substring (all the characters after the first).
+If the substrings have the same length, then the original strings have the same
+length; if the substrings don't have the same length then the original strings
+don't have the same length. So, solving this problem for the substrings is
+exactly the same as solving it for the original strings. So we can write the
+recursive call as</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">same_length</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span><span class="n">s2</span><span class="p">):</span>    
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s1</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">s2</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">same_length</span><span class="p">(</span><span class="n">s1</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span><span class="n">s2</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</pre></div>
+
+
+<p>Note that if we compared the lengths of a huge string and a tiny one, we would
+find that they are different in an amount of time proportional to the tiny
+string.</p>
+<hr />
+<h2><a name="anchor-7"></a>Recursive list processing</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>Finally, here are some some simple recursive list processing functions. As with
+strings, we can slice a list to get a smaller list, with the slice l[1:]
+especially common and useful.</p>
+<p>Could you start from scratch and define this as illustrated above?</p>
+<p>We can define lists recursively:
+      [] is a list
+      a value catenated to the front of a list is a list</p>
+<p>If there were not len function for lists, we could easily define it recursively
+as </p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">len</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</pre></div>
+
+
+<p>Likewise for a sum function</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</pre></div>
+
+
+<p>Below, the all_pred function returns True if and only if predicate p always
+returns True, when called on every value in the list.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">all_pred</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">p</span><span class="p">):</span> <span class="c1"># where p is some predicate whose domain includes l&#39;s values</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">p</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="n">all_pred</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span><span class="n">p</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Note that because and is a short-circuit operator, it recurs only as far as the
+first False value, at which point it does not need to call all_pred(l[1:])
+recursively. When we study efficiency, we will discover that the way Python
+represents lists (as growable arrays) make recursion inefficient compared to
+iteration, but when we study linked list and trees (briefly this quarter,
+extensively in ICS-46) we will see for those implementations, recursion is as
+fast at iteration.</p>
+<p>Finally, you might wonder why the base case, all([],p) returns True. What
+should the function return for an empty list? Well, imagine we are one call
+before the empty list: a list with one value. What should all([a],p) return.
+Well, it should return p(a) (True if p(a) is) True for this one-element list.
+What does the recursive function return: p(a) and all([],p). So we need to
+solve the equation by determing what all([],p) should be.</p>
+<div class="codehilite"><pre><span></span><span class="n">p</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">p</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([],</span><span class="n">p</span><span class="p">)</span>
+</pre></div>
+
+
+<p>To solve this equation, and determine the value of all([],p), we find that
+all([],p) must be True (if it were False, p(a) and all([],p) would be the same
+as p(a) and False, which would always be False, not the required answer of p(a).</p>
+<p>Based on this same logic, here are what based cases must be, categorized by
+the operator before the recursive call.</p>
+<p>base case = True  ...     and recursive-call
+base case = False ...     or  recursive-call
+base case = 0     ...     +   recursive-call
+base case = 1     ...     *   recursive-call
+base case = -infinity ... max(...,recursive_call)
+base case = +infinity ... min(...,recursive_call)</p>
+<p>Generally x op recursive-call(base case) must be x, which it is for all these
+values. and operators.</p>
+<hr />
+<h2><a name="anchor-8"></a>Problems</h2>
+<p>[<a href="#top">top</a>]</p>
+<ol>
+<li>
+<p>Define a recursive function named is_odd using the functions z, p, and s
+described in the lecture, which computes whether or not its argument is an odd
+value.</p>
+</li>
+<li>
+<p>Define a recursive function named remove, which takes string and a
+1-character string, and returns a string with the specified character removed:
+remove('afghanistanbananastand','a') returns 'fghnistnbnnstnd'.</p>
+</li>
+<li>
+<p>Define a recursive function named replace, which takes string and two
+1-character strings, and returns a string with the first specified character
+replaced byh the second: remove('potpourri','o','O') returns 'pOtpOurri'.</p>
+</li>
+<li>
+<p>Define a recursive function named contains, which takes a list and a value as
+arguments, and returns whether or not the value appears in the list.</p>
+</li>
+<li>
+<p>Define a recursive function named is_sorted, which takes a list as an
+argument, and returns whether or not the list of values is non-decreasing (each
+is &gt;= to the value preceding it).</p>
+</li>
+<li>
+<p>Define the function equals(s1,s2), which computes whether two strings are ==
+without ever comparing more than 1-character strings.</p>
+</li>
+<li>
+<p>Write less_than(s1,s2) which computes whether s1 &lt; s2 (where both are
+strings) without ever comparing more than 1-character strings. The result
+should be the same as using &lt; (the standard Python comparision).</p>
+</li>
+<li>
+<p>Write a function named min_stamps that takes an amount as an argument and
+returns the minimum number of stamps that you need to make that amount. Assume
+inside the function you would define denominations as a list with all the stamp
+amounts: e.g., denominations = [1, 2, 5, 12, 16, 24]. With these denominations
+min_stamps(19) returns 3 (denominations 1, 2, 16 or 2, 5, 12).</p>
+</li>
+</ol>
+</html>

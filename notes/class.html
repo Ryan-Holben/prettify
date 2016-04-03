@@ -1,0 +1,1151 @@
+<head>
+<link rel="stylesheet" href="css/rpoole.css">
+<link rel="stylesheet" href="css/rhyde.css">
+<link id="syntaxhighlightingCSS" rel="stylesheet" href="css/codehilitepastie.css">
+
+<script>
+function swapCSS(sheet){
+	document.getElementById('syntaxhighlightingCSS').setAttribute('href', sheet);
+}
+</script>
+</head>
+
+<body>
+<div id="syntaxbuttons" align=center style="position:fixed; bottom:10; right:10;">
+Syntax<br>
+<button onclick="swapCSS('css/codehilitepastie.css')">Light</button>
+<button onclick="swapCSS('css/codehilitezenburn.css')">Dark</button>
+</div>
+
+    <h1><div align=center>                Python Classes</div></h1>
+<hr />
+<h2><a name="top"></a> Table of Contents</h2>
+<ol>
+<li><a href="#anchor-1">Defining Classes</a></li>
+<li><a href="#anchor-2">Manipulating an object's namespace (and <strong>init</strong>)</a></li>
+<li><a href="#anchor-3">Different kinds of names: definition and use</a></li>
+<li><a href="#anchor-4">Strange Python (but now understandable)</a></li>
+<li><a href="#anchor-5">Redefinition of Function Names</a></li>
+<li><a href="#anchor-6">Accessor/Mutator Methods (or query/command methods) and Instance Variables</a></li>
+<li><a href="#anchor-7">Defining classes in unconventional places</a></li>
+<li><a href="#anchor-8">Defining/Using Static Methods in Classes</a></li>
+<li><a href="#anchor-9">Look at my Dice class (in dice.py in the courselib). It has many interesting</a></li>
+<li><a href="#anchor-10">Problems</a></li>
+</ol>
+<hr />
+<p>This lecture reviews basic material that you should know about defining and
+using classes, although it also presents some new (hopefully easy to understand)
+material that you may have not seen. Primarily this lecture discusses how to
+use the namespaces in class objects and their instance objects to store data as
+well as functions/methods.</p>
+<hr />
+<h2><a name="anchor-1"></a>Defining Classes</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>When we define a class in a Python, we are binding the class name to an object
+representing the entire class. We call the class object to create a new object
+that is an instance of the class: Python constructs an empty instance object
+and then calls the ___init__ method defined in the class, (passing the new/empty
+instance object to the self parameter) to initialize the state of the instance
+object. Recall that all names in Python refer/are-bound to objects; so defining</p>
+<div class="codehilite"><pre><span></span>   <span class="k">class</span> <span class="n">C:</span>
+       ...
+</pre></div>
+
+
+<p>creates the name C and binds it to an object representing the class C.</p>
+<p>What names are attributes defined in a class object's namespace? I'm not
+talking about the instance objects that will be constructed from the class C,
+but the names in the namespace of the class object itself. Mostly, a class
+defines names that are bound to its methods (__init__, etc.), but later in this
+lecture we will discuss names representing class variables as well as class
+methods.</p>
+<p>When we want to construct an object that is an instance of a class, we refer to
+a class object (typically by a name bound to it) followed by () and possibly
+arguments in these parentheses. Python does three things when constructing new
+instance objects:</p>
+<ol>
+<li>
+<p>It calls a special function that creates an object that is a new instance of
+    the class. Note that this object automatically has an dictionary associated
+     with it, with the name __dict__, but that dictionary starts empty.</p>
+</li>
+<li>
+<p>It calls the __init__ method for the class, passing the object created in
+    (1) to the first/self parameter of __init__ , and following this with all
+    the other argument values in the parentheses used in the call to construct
+    the state of this instance. Typically it assigns values to self/instance
+    variables, storing the name/binding in __dict__ for the self object.</p>
+</li>
+<li>
+<p>A reference to the object that was created in (1) and initialized in (2) is
+    returned as the result of constructing the object: most likely this
+    reference will be bound to a name: e.g., c = C(...) which means c refers to
+    a newly constructed/initialized object of class C.</p>
+</li>
+</ol>
+<p>So if we call c = C(1,2) Python calls C.__init__(reference to new object,1,2)
+and binds c to refer to the newly constructed object somehow initialized by
+1 and 2.</p>
+<p>Note that we can define other names that can bind to/share the same class
+object. For example:</p>
+<p>class C:
+        def <strong>init</strong>(self):
+            print('instance of C object initialized')
+            self.m = 'starting' # initialize an instance/attribute name</p>
+<p>D = C   # C and D share the same class object
+x = C() # Use C to construct an instance of a class C object
+y = D() # Use D to construct an instance of a class C object</p>
+<div class="codehilite"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">C</span><span class="p">,</span><span class="n">D</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">C</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+</pre></div>
+
+
+<p>Running this script produces the following: the first two lines from calling
+__init__ twice, the next two from calling the two print statements above</p>
+<div class="codehilite"><pre><span></span>  instance of C object initialized
+  instance of C object initialized
+  &lt;class &#39;__main__.C&#39;&gt; &lt;class &#39;__main__.C&#39;&gt; &lt;__main__.C object at 0x027B0E10&gt; &lt;__main__.C object at 0x02889C50&gt;
+  &lt;class &#39;__main__.C&#39;&gt; &lt;class &#39;__main__.C&#39;&gt; &lt;class &#39;type&#39;&gt; &lt;class &#39;type&#39;&gt;
+</pre></div>
+
+
+<p>Finally, if we print(x.m) or print(y.m) it prints 'starting'</p>
+<p>We can use the type function to determine the type of any object. The objects x
+and y refer to are instances of the class C, defined in the main script. C (and
+all classes that we define) are instances of a special class called 'type'). So
+x is an instance of C, and C is an instance of 'type'.</p>
+<hr />
+<h2><a name="anchor-2"></a>Manipulating an object's namespace (and <strong>init</strong>)</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>All objects have namespaces, which are dictionaries in which names defined in
+that object are bound-to/associated-with values. Typically we write something
+like:</p>
+<div class="codehilite"><pre><span></span>  <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">value</span>
+</pre></div>
+
+
+<p>in the __init__ or any other method, to defined a name in the dictionary of the
+object self refers to, and bind that name (or update an exsting binding) to
+refer to value.</p>
+<p>Now we illustrate a cruder way to add names to the namespace of an object.
+This way is not recommended now, but it furthers our understanding of objects
+and their namespaces in Python, and we will find concrete uses for this
+understanding later. Given class C defined above, we can write</p>
+<div class="codehilite"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+<span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">c</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="s1">&#39;two&#39;</span>
+<span class="n">c</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="k">print</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Running this script produces</p>
+<div class="codehilite"><pre><span></span>  instance of C object initialized
+  {&#39;m&#39;: &#39;starting&#39;}
+  {&#39;x&#39;: 1, &#39;y&#39;: &#39;two&#39;, &#39;m&#39;: &#39;starting&#39;, &#39;z&#39;: 3}
+  starting 1 two 3
+</pre></div>
+
+
+<p>So, we have used two different forms for adding three names to the
+namespace/dictionary for the object that c refers to (which initially stores
+the name m, initialized by self.m = 'starting'). Adding names updates the
+object's __dict__.  Writing object.name = value is equivalent to writing
+object.__dict__['name'] = value.</p>
+<p>The object c has a __dict__ attribute that stores its namespace bindings.
+Each identifier for which we define an attribute for the object appears as a
+string keyword in __dict__.</p>
+<p>Generally we don't initialize the namespace of an object this way; instead we
+use the automatically-called __init__ method and its self parameter to do the
+initialization. But really, the same thing is happening in __init__ below as
+was shown above.</p>
+<p>class C:
+        def <strong>init</strong>(self,init<em>x,init</em>y):
+            print('instance of C object initialized')
+            self.x = init<em>x     # value depends on the argument matching init</em>x
+            self.y = init<em>y     # value depends on the argument matching init</em>y
+            self.z = 3      # always the same object: 3</p>
+<div class="codehilite"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;two&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">c</span><span class="o">.</span>\<span class="n">_</span>\<span class="n">_dict</span>\<span class="n">_</span>\<span class="n">_</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Running this script produces the same results.</p>
+<div class="codehilite"><pre><span></span>  instance of C object initialized
+  {&#39;z&#39;: 3, &#39;y&#39;: &#39;two&#39;, &#39;x&#39;: 1}
+</pre></div>
+
+
+<p>The purpose of the __init__ method is to create all the attribute names needed
+by the object's methods and initializes them appropriately. Typically, once
+__init__ is called, no new names are added to the object's namespace (although
+Python allows additions, as illustrated in the prior section (c.x = 1) and some
+useful examples are illustrated later in this lecture as well). Every object
+constructed is likely to need exactly the same names: all the names used
+in the methods defined in the class; methods that process instance objects
+of the class. The __init__ method, which is automatically called by Python
+when an object is constructed, is a convenient place to localize the creation
+and initialization of all these attribute names.</p>
+<p>So, for every assignment statement</p>
+<div class="codehilite"><pre><span></span>  <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">value</span>
+</pre></div>
+
+
+<p>Python puts an entry into the object's namespace (self.__dict_) with the key
+'name' (keys are strings) associated with value. We can do this in the __init__
+method or after the object is constructed: both ways are shown above. When
+self.name appears in an expression (e.g., a = self.name), Python substitutes the
+expression self.__dict__['name'] for the right hand side of the =, to retrieve
+the value of that name from the self object's namespace/dictionary.</p>
+<p>If we try to access a non-existent attribute name (c.mumble in the class C
+above, which is translated into c.__dict__['mumble']), Python raises an
+exception. print(c.mumble) prints the exception as</p>
+<p>AttributeError: 'C' object has no attribute 'mumble'</p>
+<p>Note that some names defined in __init__ (z above) always receive the same
+initialization, so we don't need a parameter to initialize them. But often
+names need to be initialized to different values when different objects are
+constructed, so typically we add just enough parameters to the __init__  method
+to allow us to specify how those names with different values should be
+initialized.</p>
+<hr />
+<p>Interlude: assert in initialization</p>
+<p>Sometimes __init__ will ensure that a parameter is matched to an argument that
+stores a legal and reasonable value for it; if not, Python will raise an
+exception to indicate that the object being constructed cannot be properly
+initialized. Sometimes it raises an exception explicitly, using an if statement
+that tests for an illegal value. Sometimes it uses an assert statement for this
+purpose. Remember that the form of assert is:</p>
+<p>assert boolean-test, string</p>
+<p>which is equivalent to the slightly more verbose</p>
+<div class="codehilite"><pre><span></span>  if not boolean-test:
+      raise AssertionError(string)
+</pre></div>
+
+
+<p>I suggest that the string argument to AssertionError should always contain 4
+parts:</p>
+<div class="codehilite"><pre><span></span>  (1) The name of the class (if the problem occurs in the method of a class) or
+      the name of the module (if the problem occurs in a function in a module)
+</pre></div>
+
+
+<p>(2) The name of the method/function that detects the problem (here __init__)</p>
+<p>(3) A short description of the problem...</p>
+<p>(4) ...including the values of the argument(s) that is causing the problem</p>
+<p>For example, if class C included an  __init__ method that required x's argument
+to be a positive integer, we could write __init__ as follows. We typically check
+all the arguments FIRST in this method, before binding any self/instance names.</p>
+<div class="codehilite"><pre><span></span>  def __init__(self,x):
+      assert type(x) is int and x &gt; 0, &#39;C.__init__: x(&#39;+str(x)+&#39;) must be an int and positive&#39;
+      ...
+</pre></div>
+
+
+<p>or</p>
+<div class="codehilite"><pre><span></span>  def __init__(self,x):
+      assert type(x) is int and x &gt; 0, &#39;C.__init__: x({v}) must be an int and positive&#39;.format(v=x)
+      ...
+</pre></div>
+
+
+<p>If so, calling C(-1) would result in the error message</p>
+<p>C.__init__: x(-1) must be an int and positive</p>
+<p>and calling C('abc') would result in the error message</p>
+<p>C.__init__: x(abc) must be an int and positive</p>
+<p>Such a message provides useful information to whoever is writing/debugging the
+program. In a well-written program, someone just using the program (possible
+not a programer) should not have to read/interpret such a message.</p>
+<p>Question: if we wrote the assert as just x &gt; 0, what exception would be raised
+by calling C('abc') and why? Why is the given assertion "better", even though it
+is less efficient to check?</p>
+<p>We could be even more descriptive and write
+      def <strong>init</strong>(self,x):
+          assert type(x) is int, 'C.<strong>init</strong>: x('{v}') must be an int'.format(v=x)
+          assert x &gt; 0, 'C.<strong>init</strong>: x({v}) must be positive'.format(v=x)</p>
+<p>Note that int refers to the int class (not an instance of an int class: e.g.,
+not 1), so writing "type(x) is int" is checking whether the type of the object
+x refers to is the same as the object int refers to: meaning x is bound to an
+object constructed from the int class.</p>
+<hr />
+<p>Once an object is constructed and initialized, typically we use it by calling
+methods (or possibly passing it to another function/method that calls its
+methods). We call an object's method using the syntax object.method(arguments);
+recall the Fundamental Equation of Object-Oriented Programming.</p>
+<div class="codehilite"><pre><span></span>o.m(...) is translated into type(o).m(o,...)
+</pre></div>
+
+
+<p>This means, the method m in the class specifying the type of object o is called,
+and the object o used to call the method is passed to the method as the first
+argument (matching the self parameter). For example, 'a;b;c'.split(';') is
+translated into type('a;b;c').split('a;b;c',';') which is equivalent to
+str.split('a;b;c',';'). It calls the split method defined in the str class with
+the arguments 'a;b;c' (matching the self parameter) and ';' (matching the
+second parameter).</p>
+<p>Before finishing the discussion of objects and their dictionaries, recall that
+C refers to a class object. As an object, it also has a __dict__ that stores its
+namespace. Here is some code that shows what names are defined in the C object.</p>
+<p>for (k,v) in C.__dict__.items():
+    print(k,'-&gt;',v)</p>
+<p>And here is what it prints.</p>
+<p>__weakref__ -&gt; <attribute '\_\_weakref\_\_' of 'C' objects>
+__dict__ -&gt; <attribute '\_\_dict\_\_' of 'C' objects>
+__doc__ -&gt; None
+__init__ -&gt; <function C.\_\_init\_\_ at 0x03197618>
+__qualname__ -&gt; C
+__module__ -&gt; __main__</p>
+<p>Note that __init__ is the only function that we defined, and it is there (on
+the 4th line). Because I ran this code as a script (the main module), its
+__module__ variable is bound to '__main__', which you should know something
+about, because you should have written (and understand) code like</p>
+<div class="codehilite"><pre><span></span>  <span class="k">if</span> <span class="n">__module__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+      <span class="o">...</span>
+</pre></div>
+
+
+<p>If this module were imported, the __module__ key would be associated with the
+file/module name it was written in, when imported.  Only the module
+corresponding to the script that started execution has its __module__ key bound
+to '__main__'. We can test this name to run the script only when its module is
+run, not when it is imported by another module. The if accomplishes this
+behavior.</p>
+<p>If I had defined C with a docstring it would appear as an attribute of __doc__.
+Don't worry about __weakref__, the internal __dict__ or __qualname__.</p>
+<hr />
+<h2><a name="anchor-3"></a>Different kinds of names: definition and use</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>Let's discuss four different kinds of names in relation to classes. We will
+call all these names variables.</p>
+<div class="codehilite"><pre><span></span>  (1) local variables: defined and used inside functions/methods to help with
+      the computation; parameter variables are considered local variables too.
+
+  (2) instance variables of an object: typically defined inside __init__ and
+      used inside class methods (we saw other ways to define them above too).
+      These are referred to as self.name.
+
+  (3) class variables: typically defined in classes (at same level as methods,
+      not inside methods) and typically used in methods; we use a class
+      variable for information COMMON to all objects of a class (rather than
+      putting the same local variable in each object constructed from the
+      class). Methods are actually class variables, bound to function objects.
+
+      All class variables are defined in the class object and they are found by
+      the Fundamental Equation of Object-Oriented Programming through instances
+      of that class. That is, if class C defines an attribute a (method or
+      class variable) and x refers to an object constructed from class C, then
+      x.a will find attribut a in class C, but only if it is not stored
+      directly in x (in x&#39;s __dict__). For class variables, that is typically
+      what we want.
+
+  (4) global variables: typically defined in modules (outside of functions and
+      classes) and used inside functions and/or class methods; we typically
+      avoid using them (don&#39;t use global variables), and when we do use them,
+      we do so in a cautious and limited manner.
+</pre></div>
+
+
+<p>You should know how to use all these kinds of variables (and their semantics).
+Use local variables and instance variables as needed (most function/methods
+have the former, and most classes define the later in __init__ and use them in
+methods). Class variables are sometimes useful to solve certain kinds of
+problems where common information is stored among all the instances, by storing
+them just once in their common class object. Global variables are fine to use in
+scripts, but are often frowned upon when declared in modules that are imported
+(although they too have their uses there, but in more advanced settings).</p>
+<p>The following script uses each kind of variable, appropriately named. Ensure
+that you understand how each use of these variables works. The use of the
+command named 'global' (see the two lines with #comments) is explained in more
+detail below.</p>
+<div class="codehilite"><pre><span></span><span class="n">global_var</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+
+
+<p>class C:</p>
+<div class="codehilite"><pre><span></span>    <span class="n">class_var</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span>    def __init__(self,init_instance_var):
+        self.instance_var = init_instance_var
+
+    def bump(self,name):
+        print(name,&#39;bumped&#39;)
+        #global_var = 100    # comment out this line or the next
+        global global_var    # comment out this line or the previous 
+        global_var += 1 
+        C.class_var += 1     # self.class_var get translated to C.class_var
+        self.instance_var += 1
+
+    def report(self,var_name):
+        print(&#39;instance referred to by&#39;, var_name,
+              &#39;: global_var =&#39;, global_var,
+              &#39;/class_var =&#39;, self.class_var,     # can write as self._class_var
+              &#39;/instance_var=&#39;, self.instance_var)
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">C</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">()</span>
+</pre></div>
+
+
+<p>prints
+      instance referred to by x : global<em>var = 0 /class</em>var = 0 /instance<em>var= 10
+      x bumped
+      instance referred to by x : global</em>var = 1 /class<em>var = 1 /instance</em>var= 11</p>
+<div class="codehilite"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;y = x&#39;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+<span class="n">y</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">()</span>
+</pre></div>
+
+
+<p>prints
+      y = x
+      y bumped
+      instance referred to by x : global<em>var = 2 /class</em>var = 2 /instance<em>var= 12
+      instance referred to by y : global</em>var = 2 /class<em>var = 2 /instance</em>var= 12</p>
+<div class="codehilite"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;y = C(20)&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">C</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">()</span>
+</pre></div>
+
+
+<p>prints
+      y = C(20)
+      y bumped
+      instance referred to by y : global<em>var = 3 /class</em>var = 3 /instance_var= 21</p>
+<p>C.report(x,'x')       # same as x.report('x') by the Fundamental Equation of OOP
+type(x).report(x,'x') # ditto: the meaning of the Fundamental Equation of OOP
+print()</p>
+<p>prints
+      instance referred to by x : global<em>var = 3 /class</em>var = 3 /instance<em>var= 12
+      instance referred to by x : global</em>var = 3 /class<em>var = 3 /instance</em>var= 12</p>
+<p>print(C.class_var, x.class_var)  # discussed below
+print(x.instance_var)</p>
+<p>prints
+      3 3
+      12</p>
+<p>So, the global variable is changing every time, as is the class variable,
+because there is just one of each. But each object thta is an instance of C
+has its own instance variable, which changes only when bump is called on that
+instance.</p>
+<p>If we instead commented as follows</p>
+<div class="codehilite"><pre><span></span>        global_var = 100     # comment out this line or the next
+        #global global_var   # comment out this line or the previous
+</pre></div>
+
+
+<p>running the script would have the following result: By removing the statement
+global global_var, then the statement global_var = 100 actually defines a local
+variable in the bump method -despite its name- so its increment does not affect
+the true global_var, which stays at zero.</p>
+<p>Recall, if a variable defined in a function/method has not been declared global,
+it is created as a local variable inside the function/procedure.</p>
+<p>Note that one can REFER to the value of a global_var inside methods of class C
+WITHOUT a global declaration (see the report method), but if a method wants to
+CHANGE global_var it must declare it global (then all reference and changes are
+to the real global variable). With no global global_var, the assignment
+global_var = 100 creates a new name local to the bump method and always binds
+it to 100.</p>
+<div class="codehilite"><pre><span></span>  instance referred to by x : global_var = 0 /class_var = 0 /instance_var= 10
+  x bumped
+  instance referred to by x : global_var = 0 /class_var = 1 /instance_var= 11
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span>  <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+  <span class="n">y</span> <span class="n">bumped</span>
+  <span class="n">instance</span> <span class="n">referred</span> <span class="n">to</span> <span class="n">by</span> <span class="n">x</span> <span class="p">:</span> <span class="n">global_var</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">/</span><span class="n">class_var</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span><span class="n">instance_var</span><span class="o">=</span> <span class="mi">12</span>
+  <span class="n">instance</span> <span class="n">referred</span> <span class="n">to</span> <span class="n">by</span> <span class="n">y</span> <span class="p">:</span> <span class="k">global</span>\<span class="n">_var</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">/</span><span class="n">class</span>\<span class="n">_var</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span><span class="n">instance</span>\<span class="n">_var</span><span class="o">=</span> <span class="mi">12</span>
+
+  <span class="n">y</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+  <span class="n">y</span> <span class="n">bumped</span>
+  <span class="n">instance</span> <span class="n">referred</span> <span class="n">to</span> <span class="n">by</span> <span class="n">y</span> <span class="p">:</span> <span class="n">global_var</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">/</span><span class="n">class_var</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">/</span><span class="n">instance_var</span><span class="o">=</span> <span class="mi">21</span>
+  <span class="n">instance</span> <span class="n">referred</span> <span class="n">to</span> <span class="n">by</span> <span class="n">x</span> <span class="p">:</span> <span class="k">global</span>\<span class="n">_var</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">/</span><span class="n">class</span>\<span class="n">_var</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">/</span><span class="n">instance</span>\<span class="n">_var</span><span class="o">=</span> <span class="mi">12</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span>  1 1
+  11
+</pre></div>
+
+
+<p>Finally, it is clear what C.class_var and x.instance_var refer to, but what
+about x.class_var? As shown above this prints 1 just as C.class_var does. This
+meaning is a result of the Fundamental Equation of Object Oriented Programming
+(but applied to variable attributes, not method attributes).</p>
+<div class="codehilite"><pre><span></span>-----
+Technically, when specifying o.attr, any access to an attribute name in object o
+(whether a variable or method) Python first tries to find attr in the object o;
+if it is not defined in o&#39;s namespace/__dict__ Python uses the FEOOP to try to
+find it by checking type(o).attr, which attempts to find attr in type(o)&#39;s
+namespace/__dict__. So when trying to find x.class_var if fails to find
+class_var in o&#39;s namespace/__dict__, so it tries type(o).class_var or
+C.class_var and finds the class_var attribute in C&#39;s namespace/__dict__.
+</pre></div>
+
+
+<p>When we study inheritance, we will learn more about how Python searches for
+all attributes by generalizing this rule: if it is not in an instance, then it
+tries in the class that instance was constructed from, and if not in that
+class, it tries in its super classes, and if not in its superclass....</p>
+<p>But for now remember: to find an attribute, look first in the namespace of the
+object; if it isn't there, then look in the namespace of the class thta the
+object was constructed from.</p>
+<hr />
+<hr />
+<h2><a name="anchor-4"></a>Strange Python (but now understandable)</h2>
+<p>[<a href="#top">top</a>]
+  1) Defining/using a method for a class, AFTER the class has been declared:</p>
+<div class="codehilite"><pre><span></span>  2) Defining a method for an instance (but not the whole class) after the
+       instance has been constructed:
+</pre></div>
+
+
+<p>We will now discuss one more interesting thing a dynamic language like Python
+can do (but languages like Java and C++ cannot). We can change the meaning of
+a class as a program is running. Let's go back to a very simple class C, that
+stores one instance variable, but has no methods that change it. The report
+method prints the value of this instance variable.</p>
+<p>class C:
+        def <strong>init</strong>(self,init<em>instance</em>var):
+            self.instance<em>var = init</em>instance_var</p>
+<div class="codehilite"><pre><span></span>    def report(self,var_name):
+        print(&#39;instance referred to by&#39;, var_name,
+              &#39;/instance_var=&#39;, self.instance_var)
+</pre></div>
+
+
+<p>Now look at the following code. It defines x to refer to an object constructed
+from the class C, which defines only a report method (and then it calls that
+method to report). Next it defines the bump function with a  first parameter
+named self: its body increments the instance_var in self's namespace
+dictionary. We call bump with x and it updates x's instance_var (as seen by the
+report).</p>
+<p>Then we do something strange. We add the bump function into the namespace of
+C's class object with the name cbump (that is just the same as writing
+C.__dict__['cbump'] = bump, creating the cbump method). We could have used just
+bump, but instead used a slightly different name. Then, we call x.cbump('x')
+which by the Fundamental Equation of OOP is the same as calling C.cbump(x,'x')
+and because we just made the cbump attribute of the object representing class C
+refer to the bump function, its meaning is to call the same function object
+that bump refers to.</p>
+<div class="codehilite"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">C</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span> <span class="c1"># By FEOOP, exactly the same as calling C.report(x,&#39;x&#39;)</span>
+<span class="k">print</span><span class="p">()</span>
+</pre></div>
+
+
+<p>prints
+  instance referred to by x /instance_var= 10</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">bump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s1">&#39;bumped&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">instance_var</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">bump</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">()</span>
+</pre></div>
+
+
+<p>prints
+      x bumped
+      instance referred to by x /instance_var= 11</p>
+<p>C.cbump = bump; # put bump in the namespace of C, with the name cbump
+x.cbump('x')    # By FEOOP, exactly the same as calling C.cbump(x,'x')
+x.report('x')
+print()</p>
+<p>prints
+      x bumped
+      instance referred to by x /instance_var= 12</p>
+<div class="codehilite"><pre><span></span><span class="n">y</span><span class="o">=</span><span class="n">C</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">cbump</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>prints
+      y bumped
+      instance referred to by y /instance_var= 21</p>
+<p>So, even after the class C has been defined, we can still add a method to it 
+namespace and then can call it using any object that has already been (or will
+be) constructed from the class C. That is, we can change the meaning of a class
+C, and all the objects constructed from the class will respond to the change
+through the FEOOP.</p>
+<p>Recall that the del command gets rid of an association in a dict. If we wrote
+del C.cbump, then if we tried to call that method by x.cbump('x') the result
+would be that Python raises </p>
+<p>AttributeError: 'C' object has no attribute 'cbump'</p>
+<p>So we can both ADD and REMOVE names from a class object's namespace!</p>
+<p>Note that we could have defined/written bump as follows (note use of p not self
+as the first parameter of bump)</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span>  <span class="nf">bump</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s1">&#39;bumped&#39;</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">instance_var</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>and nothing changes, so long as every occurrence of self is changed to p inside
+the bump function (as is done). We could likewise write</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">var</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+
+
+<p>inside the C class itself. The parameter name self is just the standard name 
+used in Python code; but there is nothing magical about this name, and we can
+substitute whatever name we want for the first parameter. This parameter will
+be matched with the object used to call the method. Although any name is
+allowed, I strongly recommend always following Python's convention and using
+the name self. Eclipse always supplies the name self automatically as the first
+parameter to any methods we define.</p>
+<hr />
+<p>Defining a method for an instance (but not the whole class) after the
+  instance has been constructed:</p>
+<p>In fact, Python also allows us to add a reference to the bump method to a single
+instance of an object constructed from class C, not the class itself. Therefore
+unlike the example above, bump is callable only on that one object it was
+added to, not on all the other instances of that class. We can also use this
+technique to add a method to an object that is different than the one defined
+in the object's class.</p>
+<p>Start with the class C as defined above, defining just __init__ and report.
+Then</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">bump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s1">&#39;bumped&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">instance_var</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">bump</span> <span class="o">=</span> <span class="n">bump</span><span class="p">;</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>y.bump(y,'y')     # fails because there is no bump attribute in the object y
+y.report('y')     #    refers to, either directly in y or in y's class C</p>
+<p>Note that calling x.bump(..) finds the bump method in x's namespace, without
+needing to translate it using the Fundamental Equation of Object-Oriented
+Programming. Without the translation, we explicitly need to pass the x argument
+which becomes bump's self parameter.</p>
+<p>Generally when looking up the attribute x.attr (whether attr is a variable or
+method name), Python first looks in the namespace of the object x refers to,
+and if it doesn't find attr, it next looks in the namespace of the object
+type(x) refers to.</p>
+<p>When run, this script produces:</p>
+<p>x bumped
+x bumped
+instance referred to by  x /instance_var= 2
+Traceback (most recent call last):
+      File "C:\Users\pattis\Desktop\python32\test\script.py", line 21, in <module>
+        y.bump(y,'y')     # fails because there is no bump attribute in the object y
+    AttributeError: 'C' object has no attribute 'bump'</p>
+<p>The error message mentions C because after failing to find the bump attribute
+in the object y refers to, it looks in the object C refers to; when it fails
+there too, the raised exception reports the error.</p>
+<p>So, we can add methods to</p>
+<div class="codehilite"><pre><span></span>  (a) classes: methods that all the instances of that class can refer to, via
+      FEEOP
+
+  (b) an instance of the class, such that only that instance can call the method
+      (and their self parameter must also be passed as an explicit argument),
+      since FEOOP is not used.
+</pre></div>
+
+
+<hr />
+<p>Combining both worlds using delegation</p>
+<p>Suppose that we wanted to be able to call methods attached to objects, but do
+so using the standard object.method(...) syntax, as we did in the first part of
+this section. In the second part of this section, we had to duplicate the
+object, e.g., calling x.bump(x,'x') instead of just x.bump('x'). We will see
+how to return to this simpler behavior using the concept of delegation in
+Python.</p>
+<p>We start by defining C as follows, adding the bump function below</p>
+<p>class C:
+        def <strong>init</strong>(self,init<em>instance</em>var):
+            self.instance<em>var = init</em>instance_var</p>
+<div class="codehilite"><pre><span></span>    def report(self,var):
+        print(&#39;instance referred to by&#39;, var,
+              &#39;/instance_var=&#39;, self.instance_var)
+
+    def bump(self,name):
+        try:
+            self.object_bump(self,name)
+        except AttributeError:
+            print(&#39;could not bump&#39;,name) # or just pass to handle the exception;
+                                         # or omit try/except altogther
+</pre></div>
+
+
+<p>In this definition of C, there is a bump method defined in the class C, for all
+instances constructed from this class to execute, findable by FEEOP.</p>
+<p>When bump is called here, it tries to call a method named object_bump on the
+instance it was supplied, passing the object itself to object_bump (doing
+explicitly what FEOOP does implicitly/automatically). If that instance defines
+an object_bump function, it is executed; if not, Python raises an attribute
+exception, which at present prints a message, but if replaced by pass would
+just silently fail. Of course, we could also remove the entire try/except so an
+attribute failure would raise an exception and stop execution.</p>
+<p>Note that in the call x.bump(...) Python uses the Fundamental Equation of OOP
+to translate this call into C.bump(x,'x'), which calls the equivalent of
+x.object_bump(x,'x').</p>
+<p>In the world of programming, this is called delegation (which we will see more
+of): the bump method delegates to the object_bump method (if present) to get
+its work done.</p>
+<p>Here is a script, using this class. It attaches different object_bump methods
+to the instance x refers to, and the instance y refers to, but not to the
+instance z refers to (nor to the class C). It calls this object_bump method not
+directly, but through delegation by calling bump in the C class.</p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">bump1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;bump1&#39;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">instance_var</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">bump2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;bump2&#39;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">instance_var</span> <span class="o">+=</span> <span class="mi">2</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">object_bump</span> <span class="o">=</span> <span class="n">bump1</span>
+<span class="n">y</span><span class="o">.</span><span class="n">object_bump</span> <span class="o">=</span> <span class="n">bump2</span>
+<span class="c1"># No binding of z.object_bump</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">()</span>
+</pre></div>
+
+
+<p>prints
+      instance referred to by x /instance<em>var= 10
+      bump1 x
+      instance referred to by x /instance</em>var= 11</p>
+<div class="codehilite"><pre><span></span><span class="n">y</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">()</span>
+</pre></div>
+
+
+<p>prints
+      instance referred to by y /instance<em>var= 20
+      bump2 y
+      instance referred to by y /instance</em>var= 22</p>
+<div class="codehilite"><pre><span></span><span class="n">z</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+<span class="n">z</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+<span class="n">z</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>prints
+      instance referred to by z /instance<em>var= 30
+      could not bump z
+      instance referred to by z /instance</em>var= 30</p>
+<hr />
+<h2><a name="anchor-5"></a>Redefinition of Function Names</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>Note that we can redefine a function or class. For example, we can write</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">f</span><span class="p">():</span> <span class="k">return</span> <span class="mi">0</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">():</span> <span class="k">return</span> <span class="mi">1</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">())</span>
+</pre></div>
+
+
+<p>Calling f() would return 1. Eclipse gets upset about this, and marks the
+second definition as an error (duplicate signature), but there is nothing
+technically wrong with this code (although the first definition is useless,
+and there may be a mistake in the spelling of one of these functions). Python
+will run the script. We can also write the following script, which Eclipse
+won't complain about, and runs the same.</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">f</span><span class="p">():</span> <span class="k">return</span> <span class="mi">0</span>
+<span class="k">def</span> <span class="nf">g</span><span class="p">():</span> <span class="k">return</span> <span class="mi">1</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">g</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">())</span>
+</pre></div>
+
+
+<p>Calling f() returns 1. Again, def just makes a name refer to a function object;
+if, as in the case of the two definitions of the f name above, the name already
+refers to an object, the binding of f is just changed to refer to the function
+object g refers to.</p>
+<p>Conceptually, it is no different than writing x = 1 and then x = 2 (changing
+what x refers to from the int object 1 to the int object 2).</p>
+<p>We can do the same thing for classes, as we saw with the names C and D in the
+first example in these notes.</p>
+<p>In summary, def f or class C just define a name and binds it to a function/class
+object. We can call the function or the class's constructor. We can rebind that
+name later to any other object. We can even write</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">f</span><span class="p">():</span> <span class="k">return</span> <span class="mi">0</span>
+<span class="n">f</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+
+
+<p>Now f is bound to an int instance object, not a function object.</p>
+<hr />
+<h2><a name="anchor-6"></a>Accessor/Mutator Methods (or query/command methods) and Instance Variables</h2>
+<p>[<a href="#top">top</a>]
+  ...single/double underscore prefix</p>
+<p>If calling o.method(...) returns information about an o's state but does not
+change o's state, it is called an accessor (or query). If o.method(...) changes
+o's state and returns None (all functions/methods must return some value), it
+is called a mutator (or command). Some method calls do both: they change o's
+state but also return a non-None value.</p>
+<p>A design question arises. Suppose that we know that an object o of a class C
+has an instance variable name iv: should we directly refer to o.iv? Should we
+use its value by writing o.iv or change it by writing o.iv = ....? The high
+road says, no: a class should hide the actual instance variables from the
+clients/users of the class; they should provide methods to manipulate the
+objects under control of the class. What instance variables we need to
+implement a class might change over time, but the methods that define the
+behavior of objects created from that class should stay the same and always
+work correctly with whatever instance variables we are using.</p>
+<p>Python is a bit at odds with this philosophy. Some languages (Java/C++) have a
+mechanism whereby instance variables can be tagged PRIVATE, so that they are
+accessible only from methods defined in the class itself; these languages do
+not allow new instance variables nor methods to be added dynamically to objects
+as Python does (as we showed above).</p>
+<p>Python's philosophy is a bit more open to accessing instance variables outside
+of the class methods. But there is danger in doing so, and beginners often use
+this convenience and end up taking longer to get their code to work correctly,
+and also make it harder to understand and change the code, because they are
+accessing information that is not guaranteed to be there in future changes to
+the code.</p>
+<p>In fact, Python does have a weaker form of tagging PRIVATE names, which we can
+use for names that should not be referred to outside the methods in the
+object's class. Below we explain the meaning of instance variable names that
+begin with one or two underscores (but don't have two trailing underscores, so
+are unlike __init__).</p>
+<hr />
+<p>Single Underscore: </p>
+<p>When a programmer uses a single underscore in a name in a class (for data or a
+method), he/she is indicating  that the name should NOT BE ACCESSED outside of
+the methods in the class. But, there is nothing in the Python interpreter that
+stops anyone from accessing that name. We can use this convention for private
+data and helper methods.</p>
+<p>class C:
+        def <strong>init</strong>(self):
+            self._mv = 1</p>
+<div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mv</span> <span class="o">==</span> <span class="mi">1</span>
+
+<span class="n">x</span> <span class="o">=</span>  <span class="n">C</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span>\<span class="n">_mv</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span>\<span class="n">_f</span><span class="p">())</span>
+</pre></div>
+
+
+<p>When run, this script produces: 1 True</p>
+<p>Still, if a class is written with names prefixed by a single underscore, it
+indicates that objects constructed from that class should not access those
+names outside of the methods defined inside the class.</p>
+<hr />
+<p>Double Underscore:</p>
+<p>If a Python name in a class begins with two underscores, it can be referred to
+by that name in the class, but not easily outside the class: but it can still be
+referred to outside the class, but with a "mangled" name that includes the name
+of the class. If a class C defines a name __mv then the name outside the class
+can be referred to as _C__mv. This is called a "mangled" name.</p>
+<p>So, if we changed the code in the class C above by writing _mv as __mv and _f as
+__f, and tried to execute</p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span>  <span class="n">C</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span>\<span class="n">_</span>\<span class="n">_mv</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span>\<span class="n">_</span>\<span class="n">_f</span><span class="p">())</span>
+</pre></div>
+
+
+<p>Python would complain by raising an AttributeError exception for the first
+value in the print statement</p>
+<p>AttributeError: 'C' object has no attribute '__mv'</p>
+<p>It x.__mv was remove, Python would complain about x.__f(), indicating the
+object has no attribute '__f'.  </p>
+<p>But given class C defines __mv, and __f we could execute the following code</p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span>  <span class="n">C</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span>\<span class="n">_C</span>\<span class="n">_</span>\<span class="n">_mv</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span>\<span class="n">_C</span>\<span class="n">_</span>\<span class="n">_f</span><span class="p">())</span>
+</pre></div>
+
+
+<p>by writing the mangled names. When we run this script it again produces: 1 True</p>
+<p>In fact, if we printed the dictionary for x, it would show '_C__mv' as a key,
+which is the true name of these functions outside of the module.</p>
+<p>print(x.__dict__) would print: {'_C__mv': 1}</p>
+<p>So, Python does contain two conventions for hiding names: the first (one
+underscore) is purely suggestive; the second (two underscores) actually makes
+it harder to refer to such names outside of a class.</p>
+<p>But neither truly prohibits accessing the information by referring to the name.</p>
+<p>When we discuss operator overloading (later this week) and inheritance (later
+in the quarter) we will learn more about controlling access to names defined
+in objects and classes.</p>
+<hr />
+<h2><a name="anchor-7"></a>Defining classes in unconventional places</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>We normally define classes in modules, and often a module does nothing but
+define just one class (although some define multiple, related classes). Other
+modules define lots of functions. All such modules are called library modules
+(not scripts) because they typically don't run code themselves, but we import
+them to gain access to the names (of classes and functions) that they define.
+(If they do run code, it is inside the code if __module__ == '__main__': and
+often the code there allows us to test the class or module).</p>
+<p>We can declare a class in a function and call the function to return an object
+constructed from the class (and even use the returned object if we know 
+its defined instance variables or methods).</p>
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">C</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>  <span class="bp">self</span><span class="o">.</span><span class="n">val</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">def</span> <span class="nf">double</span>  <span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="p">:</span>  <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span>  
+    <span class="k">return</span> <span class="n">C</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">double</span><span class="p">())</span>
+</pre></div>
+
+
+<p>When run, this script prints the following.</p>
+<p>&lt;__main__.f.<locals>.C object at 0x02829170&gt; 1 2</p>
+<p>The first value indicates (reading the first word after the left angle-bracket,
+from back to front) that class C is defined local to function f, which
+is in the script we ran (named by Python to be __main__).</p>
+<p>We can also declare a class in a class, and call some method in the class to
+return an object constructed from the inner class (and even use the object if
+we know its defined instance variables or methods).</p>
+<p>class C:
+        def <strong>init</strong>(self,x,y):
+            self.x = x
+            self.y = y
+        class Cinner:
+            def <strong>init</strong>(self,x):  self.val = x
+            def double  (self)  :  return 2*self.val<br />
+        def identity(self)   : return (self.x, self.y)
+        def x<em>construct(self): return C.Cinner(self.x)
+        def y</em>construct(self): return C.Cinner(self.y)</p>
+<div class="codehilite"><pre><span></span><span class="n">z</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">x_construct</span><span class="p">()</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">y_construct</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span> <span class="n">z</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">identity</span><span class="p">(),</span> <span class="n">a</span><span class="o">.</span><span class="n">double</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">double</span><span class="p">())</span>
+</pre></div>
+
+
+<p>When run this script prints:
+      &lt;<strong>main</strong>.C object at 0x02A36310&gt;
+      &lt;<strong>main</strong>.C.Cinner object at 0x02A36290&gt;
+      &lt;<strong>main</strong>.C.Cinner object at 0x02A36E70&gt;
+      (1, 2) 2 4</p>
+<p>z.x_construct() returns a reference to an instance of class C.Cinner, that was
+initialized by the x parameter in the __init__ method. When we call a.double(),
+the double method defined in Cinner() returns twice the value it was
+initialized with.</p>
+<p>In fact, instead of the x_construct and y_construct functions, we could define
+a more general construct function that takes either 'x' or 'y as arguments and
+constructs an object for self.x or self.y. The first way to do this uses the
+parameter (matching 'x' or 'y') as a key to access __dict__</p>
+<div class="codehilite"><pre><span></span>def construct(self,which): return C.Cinner(self.\_\_dict\_\_[which])
+</pre></div>
+
+
+<p>The second way to do this uses the eval function, whose argument is either
+'self.x' or 'self.y' depdending on the value of which.</p>
+<div class="codehilite"><pre><span></span>def construct(self,which): return C.Cinner(eval(&#39;self.&#39;+which))
+</pre></div>
+
+
+<hr />
+<h2><a name="anchor-8"></a>Defining/Using Static Methods in Classes</h2>
+<p>[<a href="#top">top</a>]</p>
+<p>A method defined in a class is considered "static" if it does not have a self
+parameter. Sometimes it is useful to write methods in a class that have this
+property. </p>
+<p>For example, suppose that we wanted to declare a Point2d class for storing the
+x,y coordinates for Points in 2-d space. The __init__ method would take two such
+arguments. But suppose that we also wanted to create Point2d objects by
+specifying polar coordinates (i.e, using a distance and angle in radians). We
+could write such a class (with this static method) as follows.</p>
+<p>import math</p>
+<p>Class Point2d:
+        def <strong>init</strong>(self,x,y):
+            self.x = x
+            self.y = y</p>
+<div class="codehilite"><pre><span></span>    @staticmethod
+    def from_polar(dist,angle):
+        return Point2d( dist*math.cos(angle), dist*math.sin(angle) )
+
+...more code
+</pre></div>
+
+
+<p>This method is preceded by @staticmethod (a decorator: we will discuss
+decorators later). It is meant to be called from outside the class, to create
+Point2d objects from polar coordinates. We can write calls like</p>
+<div class="codehilite"><pre><span></span>  <span class="n">a</span> <span class="o">=</span> <span class="n">Point2d</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="n">Point2d</span><span class="o">.</span><span class="n">from</span>\<span class="n">_polar</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Notice that we call Point2d.from_polar outside of the class by using the class
+name Point2d and the static method name from_polar defined in that class. It
+has no self parameter.</p>
+<p>Likewise, suppose that we wanted to write a helper function for computing the
+distance between two Point2d objects as a static method in this class. We could
+write it as</p>
+<div class="codehilite"><pre><span></span>    @staticmethod
+    def _distance(x1,y1,x2,y2):
+        return math.sqrt( (x1-x2)**2 + (y1-y2)**2 )
+
+    def dist(self,another):
+        return Point2d._distance(self.x, self.y, another.x, another.y)
+</pre></div>
+
+
+<p>Here this helper function is meant to be called only by the dist method in
+this class, so we write its name with a leading underscore. Note that again we
+call it using Point2d. Because of FEOOP, we could also call this helper as
+self._distance(self.x, self.y, another.x, another.y) because type(self) is
+Point2d. Because it is static, the call does not put self as the first argument.</p>
+<p>Finally, we could also write this helper function as a global function defined
+outside Point2d, in the module that Point2d is defined in. But it is better to
+minimize any kinds of global names; so, it is better to define this name inside
+the class. In this way it won't conflict with any other name the importing
+module has defined.</p>
+<hr />
+<h2><a name="anchor-9"></a>Look at my Dice class (in dice.py in the courselib). It has many interesting</h2>
+<p>[<a href="#top">top</a>]
+simple class features; it doesn't use many of the features discussed here.</p>
+<p>Later during this week, we will learn how to use methods to overload operators
+that allow us to take advantage of Python's syntactic features. We will learn
+about many other special functions named like __init__  with double underscores
+front and back.</p>
+<hr />
+<h2><a name="anchor-10"></a>Problems</h2>
+<p>[<a href="#top">top</a>]</p>
+<ol>
+<li>What does the following script print?</li>
+</ol>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">C</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;C object created&#39;</span><span class="p">)</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">C</span>
+<span class="k">def</span> <span class="nf">C</span><span class="p">():</span>
+  <span class="k">print</span><span class="p">(</span><span class="s1">&#39;C function called&#39;</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">C</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">D</span><span class="p">()</span>
+</pre></div>
+
+
+<ol>
+<li>What does the following script print? Draw a picture of the object x refers
+to using the graphical form for representing objects we learned during Week #1.</li>
+</ol>
+<p>class C:
+        def <strong>init</strong>(self,a):
+            self.a = a</p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
+
+
+<ol>
+<li>
+<p>Write a class C whose __init__ method has a self parameter, followed by low
+and high. __init__ should store these values in self's dictionary using the
+same names, but do so only if low is strictly less than high (otherwise it
+should raise the AssertionError exception with an appropriate string.</p>
+</li>
+<li>
+<p>Explain why each of the following code fragments does what it does: two
+execute (with different results) and one raises an exception.</p>
+</li>
+</ol>
+<div class="codehilite"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="mi">0</span>           <span class="n">g</span> <span class="o">=</span> <span class="mi">0</span>           <span class="n">g</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">():</span>        <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>        <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
+  <span class="k">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>        <span class="k">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>        <span class="k">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>      
+              <span class="k">global</span> <span class="n">g</span>        <span class="n">g</span> <span class="o">+=</span> <span class="mi">1</span>
+              <span class="n">g</span> <span class="o">+=</span> <span class="mi">1</span>          
+
+<span class="n">f</span><span class="p">()</span>         <span class="n">f</span><span class="p">()</span>             <span class="n">f</span><span class="p">()</span>
+<span class="n">g</span> <span class="o">+=</span> <span class="mi">1</span>          <span class="n">g</span> <span class="o">+=</span> <span class="mi">1</span>          <span class="n">g</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">f</span><span class="p">()</span>         <span class="n">f</span><span class="p">()</span>             <span class="n">f</span><span class="p">()</span>
+</pre></div>
+
+
+<ol>
+<li>Write a class C that uses a class variable to keep track of how many objects
+are created from C (remember that each object creation calls __init__)</li>
+</ol>
+<p>That is, for a class C</p>
+<div class="codehilite"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">instance_count</span><span class="p">)</span> <span class="n">prints</span> <span class="mi">2</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">instance</span>\<span class="n">_count</span><span class="p">)</span> <span class="n">prints</span> <span class="mi">3</span>
+</pre></div>
+
+
+<ol>
+<li>What would the following script print; explain why. Also, explain why the
+call self.object_bump(name) in bump is not self.object_bump(self,name) as it
+was in the notes.</li>
+</ol>
+<p>class C:
+        def <strong>init</strong>(self,init<em>instance</em>var):
+            self.instance<em>var = init</em>instance_var</p>
+<div class="codehilite"><pre><span></span>    def report(self,var):
+        print(&#39;instance referred to by&#39;, var,
+              &#39;/instance_var=&#39;, self.instance_var)
+
+    def bump(self,name):
+        try:
+            self.object_bump(name)
+        except AttributeError:
+            print(&#39;could not bump&#39;,name) # or just pass to handle the exception
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">C</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">bump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;bumped&#39;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">instance_var</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">object_bump</span> <span class="o">=</span> <span class="n">bump</span>    
+
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+
+<span class="n">y</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">bump</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<ol>
+<li>The function print is bound to a function object. What is printed by the
+following script (and why)?</li>
+</ol>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="k">print</span><span class="p">(</span><span class="k">print</span><span class="p">)</span>
+</pre></div>
+</html>
