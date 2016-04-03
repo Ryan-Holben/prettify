@@ -17,7 +17,7 @@ This project is coded in Python.  The script does the following:
 1. The Markdown is rendered to HTML, and some extra HTML bits are added so that we can use some nice CSS.
 
 ### Try it out!
-To try it out, make sure you have the Python modules in _requirements.txt_ installed.  Place any text files you want to convert into _notes/_, and then run the main script.  Peek through the code to figure out what the arguments for pretty() do.  Launch an .html file from your computer, or see a [sample output](http://ryan-holben.github.io/output1.html) here (last updated 4/3/2016).
+To try it out, make sure you have the Python modules in _requirements.txt_ installed.  Place any text files you want to convert into the _notes_ folder, and then run the main script.  Peek through the code to figure out what the arguments for pretty( ) do.  Launch an .html file from your computer, or see a [sample output](http://ryan-holben.github.io/output1.html) here (last updated 4/3/2016).
 
 ## Challenges, and why this is interesting
 It turns out that it is easy for a human to recognize a diagram, a code block, or even inline code contained within a sentence, but programming this algorithmically can be quite a challenge!  Can you precisely state how you differentiate between code and natural language?  The solution here works often, but not always, and so there is always room for improvement.  
