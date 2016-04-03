@@ -35,7 +35,7 @@ This script was developed using _recursion.txt_, and it works pretty well with i
 * An example edge case (or bug) which is not yet handled was found in _decoratorspackages.txt_:
 
     line 141, in find_lists
-      k = line_starts_with_enumeration(lines[j+1][1])
+    >  k = line_starts_with_enumeration(lines[j+1][1])
     ERROR: list index out of range
 
 In short, the original notes are not completely consistent, so we still must check against the files for some edge cases.
