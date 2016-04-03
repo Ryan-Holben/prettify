@@ -1,5 +1,5 @@
 # Prettify
-
+[<img src="recursion.png" style="float:right; width: 45%; height: 45%">](http://ryan-holben.github.io/output1.html)
 This code attempts to format the notes for Dr. Richard Pattis' ICS-33 class at UC Irvine into something colorful and more easily navigated.  Some links:
 
 * [Course website](https://www.ics.uci.edu/~pattis/ICS-33/)
@@ -28,6 +28,7 @@ There are a number of places one could work next:
 * Improve the diagram-recognition algorithm.
 * The code currently returns the table of contents data back to the main script.  A natural next step would be to generate a nice navigation for all of the note files which includes these subtopics.
 * Squash bugs and introduce more robust error-handling.
+* Other details, such as detecting and adding hyperlinks
 
 ## Bugs
 This script was developed using _recursion.txt_, and it works pretty well with it!  However, it has mixed results with other text files.  In particular, when applying the script to other files the following things may happen:
