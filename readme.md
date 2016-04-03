@@ -27,5 +27,6 @@ This script was developed using _recursion.txt_, and it works pretty well with i
 * This error was found in _decoratorspackages.txt_:
 
 > k = line_starts_with_enumeration(lines[j+1][1])
+> > ERROR: list index out of range
 
 In short, the original notes are not completely consistent, so we must check against the files for some edge cases.  Overall it works well, however.
