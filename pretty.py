@@ -1,11 +1,11 @@
 """
- Script to convert Professor Richard Pattis' ICS-33 notes into a slightly more readable and/or colorful format.  This is accomplished by converting his text notes into Markdown, and then rendering that Markdown into HTML.  A few bits of raw HTML are also added, too.
 
- This main script handles the file input and output and sets up the program's structure, whereas pretty3.py provides the helper functions that do the real work.
+pretty.py
 
- Feel free to add and expand this script!  There are at least a few edge cases which it does not yet handle, such as more advanced detection of code blocks and inline code, and some diagrams.
+Contains the main function pretty( ) which takes in the name of a raw text file, and outputs an HTML file.  Optionally, also outputs the MD file used, and also optionally a file which is useful for debugging.  Takes the parameter MAGIC_CODE_RATIO which can be tweaked to change how aggressively we detect code.
 
 """
+
 from markdown import markdown
 import pretty_helper as fmt
 

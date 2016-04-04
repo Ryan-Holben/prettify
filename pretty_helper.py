@@ -1,17 +1,25 @@
+"""
+
+pretty_helper.py
+
+Contains all of the functions that do the actual analyzing and formatting of the lines of a text file.
+
+"""
+
 import re
 
-def to_lines(text):
-    return text.split('\n')
-
 def to_text(lines):
+    """Re-joins the lines into a single newline-separated string."""
     return '\n'.join(lines)
 
 def search_backwards(lines, i):
+    """Search backwards until a blank line is found."""
     for j in range(i-1, -1, -1):
         if lines[j][1] == '':
             return j
 
 def search_forwards(lines, i):
+    """Search forwards until a blank line is found."""
     for k in range(i+1, len(lines), 1):
         if lines[k][1] == '':
             return k
@@ -19,18 +27,6 @@ def search_forwards(lines, i):
 
 def line_looks_like_code(line, code_symbol_ratio):
     """Sloppy.  We just check if the line is short and has symbols.  Should be followed up by checking if it is preceded and prepended by a blank line."""
-    # code_chars = '#()[]=!+-*\\<>'
-    # count = 0
-    # # if 0 < len(line) < 78:
-    # if len(line) > 0:
-    #     if line[-1] == '.':
-    #         return False
-    #     for c in line:
-    #         if c in code_chars:
-    #             count += 1
-    #     if 1.0*count/len(line) > .1:
-    #         return True
-    # return False
     code_chars = ['#', '[', ']', '=', '==', '<', '>']
     count = 0
     if len(line) > 0:
@@ -51,7 +47,6 @@ def line_looks_like_code(line, code_symbol_ratio):
                 return True
     return False
 
-
 def line_starts_with_enumeration(line):
     try:
         # Check if the line begins with (#), #), or #.
@@ -62,17 +57,6 @@ def line_starts_with_enumeration(line):
         # Otherwise, nothing found
         pass
     return False
-
-def code_chars(line):
-    chars = ['=', '!', ':', '(', ')', '[', ']']
-    if len(line) < 70:
-        for c in chars:
-            if c in line:
-                return True
-        return False
-        # return len([c in line for c in chars]) > 0
-    else:
-        return False
 
 def find_headers(lines):
     """Identify headers and line breaks."""
@@ -185,6 +169,7 @@ def find_diagrams(lines):
     return lines
 
 def protect_special_chars(lines):
+    """Add \ in front of * or _ so that Markdown doesn't interpret them."""
     for i in range(len(lines)):
         if lines[i][0] in ['text', 'list', 'list-item']:
             protectedline = []
@@ -233,4 +218,5 @@ def apply_line_formatting(lines):
     for n in range(len(headers)):
         lines.insert(3+n, ['added', '1.  [' + headers[n] + '](#anchor-' + str(n+1) + ')'])
     lines.insert(3+len(headers), ['added', '***'])
+
     return lines, headers
